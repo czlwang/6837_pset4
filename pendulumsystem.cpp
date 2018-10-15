@@ -16,10 +16,10 @@ PendulumSystem::PendulumSystem()
     springs = {1.0};
     
     m_vVecState = { Vector3f(0,1,0), Vector3f(0,0,0),
-                    Vector3f(0,1,0), Vector3f(0,0,0)};
+                    Vector3f(0,0.5,0), Vector3f(0,0,0)};
     
     pointsToSprings.insert({0, {0}});
-    springsToPoints.insert({0, {0,1}});
+    springsToPoints.insert({0, {0,2}});
     
     // TODO 4.3 Extend to multiple particles
     
@@ -29,15 +29,22 @@ PendulumSystem::PendulumSystem()
     // in your initial conditions.
 }
 
-//std::vector<int> getSpringNeighbors(int i)
-//{
-//    for(int spring_index : this.pointsToSprings[i])
-//    {
-//        
-//        Vector3f d =
-//    }
-//    return res;
-//}
+std::vector<int> PendulumSystem::getSpringNeighbors(int i)
+{
+    std::vector<int> res;
+    for(int spring_index : pointsToSprings[i])
+    {
+        std::vector<int> spring = springsToPoints[spring_index];
+        if(spring[0] != i)
+        {
+            res.push_back(spring[0]);
+        }else
+        {
+            res.push_back(spring[1]);
+        }
+    }
+    return res;
+}
 
 
 std::vector<Vector3f> PendulumSystem::evalF(std::vector<Vector3f> state)
@@ -52,11 +59,18 @@ std::vector<Vector3f> PendulumSystem::evalF(std::vector<Vector3f> state)
     
     for(int i=0; i < (int)state.size()/2; i++)
     {
+        Vector3f xi = state[i];
         Vector3f pos = state[i];
         Vector3f vel = state[2*i + 1];
-        Vector3f res = g*Vector3f(0,-1,0);
-   
-        f.push_back(res);
+        Vector3f force = g*Vector3f(0,-1,0);
+        std::vector<int> springNeighbors = getSpringNeighbors(i);
+        for(int j : springNeighbors)
+        {
+            Vector3f xj = state[j];
+            Vector3f d = xi - xj;
+            
+        }
+        f.push_back(force);
     }
     return f;
 }
