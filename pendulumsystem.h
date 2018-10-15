@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "particlesystem.h"
+#include "spring.hpp"
 
 class PendulumSystem : public ParticleSystem
 {
@@ -16,8 +17,7 @@ public:
     // inherits 
     // std::vector<Vector3f> m_vVecState;
 private:
-    std::vector<float> springs;
-    std::map<int, std::vector<int>> springsToPoints;//map from spring indices to point indices. The point indices are indices into the state vector
+    std::vector<Spring> springs;
     std::map<int, std::vector<int>> pointsToSprings;//map from point indices to spring indices
 };
 
