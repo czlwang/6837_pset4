@@ -127,41 +127,24 @@ void PendulumSystem::draw(GLProgram& gl)
         drawSphere(0.075f, 10, 10);
     }
     
-    const Vector3f WHITE(1.0f, 1.0f, 1.0f);
-    gl.updateMaterial(WHITE);
+    const Vector3f CLOTH_COLOR(0.2f, 0.2f, 0.9f);
+    gl.updateMaterial(CLOTH_COLOR);
+    
+    // EXAMPLE for how to render cloth particles.
+    //  - you should replace this code.
+    float w = 0.2f;
+    gl.disableLighting();
     for(int i=0; i<(int)springs.size(); i++)
     {
         Vector3f part1 = m_vVecState[springs[i].particles[0]];
         Vector3f part2 = m_vVecState[springs[i].particles[1]];
-        Vector3f translationVector = part2 - part1;
-        Vector3f otherVector = translationVector;
-        otherVector[0] = translationVector[0] - 1;
-        Vector3f translationVectorX = Vector3f::cross(translationVector, otherVector);
-        Vector3f translationVectorZ = Vector3f::cross(translationVectorX, translationVector);
-        
-        Vector3f translationVectorNormalized = translationVector;
-        Vector3f translationVectorNormalizedX = translationVectorX;
-        Vector3f translationVectorNormalizedZ = translationVectorZ;
-        
-        translationVectorNormalized.normalize();
-        translationVectorNormalizedX.normalize();
-        translationVectorNormalizedZ.normalize();
-        
-        Matrix4f rotateMat = Matrix4f(
-                                      Vector4f(translationVectorNormalizedX, 0),
-                                      //                                  Vector4f(1,0,0,0),
-                                      Vector4f(translationVectorNormalized, 0),
-                                      Vector4f(translationVectorNormalizedZ, 0),
-                                      //                                  Vector4f(0,0,1,0),
-                                      Vector4f(0,0,0,1)
-                                      );
-        
-        rotateMat = Matrix4f::translation(part1)*rotateMat;
-        
-        gl.updateModelMatrix(rotateMat);
-        float distance = translationVector.abs();
-        
-        drawCylinder(6, 0.02f, distance);
+        gl.updateModelMatrix(Matrix4f::identity()); // update uniforms after mode change
+        VertexRecorder rec;
+        rec.record(part1, CLOTH_COLOR);
+        rec.record(part2, CLOTH_COLOR);
+        glLineWidth(3.0f);
+        rec.draw(GL_LINES);
     }
+    gl.enableLighting();
 
 }
