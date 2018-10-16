@@ -18,7 +18,6 @@ public:
     int getSpringNeighbor(int i);
     float k;
     float r;
-private:
     std::vector<int> particles;
 };
 

@@ -43,5 +43,34 @@ void Trapezoidal::takeStep(ParticleSystem* particleSystem, float stepSize)
 
 void RK4::takeStep(ParticleSystem* particleSystem, float stepSize)
 {
+    std::vector<Vector3f> xn = particleSystem->getState();
+    std::vector<Vector3f> k1 = particleSystem->evalF(xn);
+    std::vector<Vector3f> timestepped_state_k1;
+    for(int i = 0; i<(int)xn.size(); i++)
+    {
+        timestepped_state_k1.push_back(xn[i] + stepSize/2.0*k1[i]);
+    }
+    std::vector<Vector3f> k2 = particleSystem->evalF(timestepped_state_k1);
+    
+    std::vector<Vector3f> timestepped_state_k2;
+    for(int i = 0; i<(int)xn.size(); i++)
+    {
+        timestepped_state_k2.push_back(xn[i] + stepSize/2.0*k2[i]);
+    }
+    std::vector<Vector3f> k3 = particleSystem->evalF(timestepped_state_k2);
+    
+    std::vector<Vector3f> timestepped_state_k3;
+    for(int i = 0; i<(int)xn.size(); i++)
+    {
+        timestepped_state_k3.push_back(xn[i] + stepSize*k3[i]);
+    }
+    std::vector<Vector3f> k4 = particleSystem->evalF(timestepped_state_k3);
+    
+    std::vector<Vector3f> x_next;
+    for(int i = 0; i<(int)xn.size(); i++)
+    {
+        x_next.push_back(xn[i] + stepSize/6.0*(k1[i] + 2*k2[i] + 2*k3[i] + k4[i]));
+    }
+    particleSystem->setState(x_next);
 }
 
