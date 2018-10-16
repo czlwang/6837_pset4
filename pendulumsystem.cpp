@@ -116,7 +116,7 @@ void PendulumSystem::draw(GLProgram& gl)
 {
     const Vector3f PENDULUM_COLOR(0.73f, 0.0f, 0.83f);
     gl.updateMaterial(PENDULUM_COLOR);
-
+    
     // TODO 4.2, 4.3
 
     // example code. Replace with your own drawing  code
@@ -126,4 +126,42 @@ void PendulumSystem::draw(GLProgram& gl)
         gl.updateModelMatrix(Matrix4f::translation(pos));
         drawSphere(0.075f, 10, 10);
     }
+    
+    const Vector3f WHITE(1.0f, 1.0f, 1.0f);
+    gl.updateMaterial(WHITE);
+    for(int i=0; i<(int)springs.size(); i++)
+    {
+        Vector3f part1 = m_vVecState[springs[i].particles[0]];
+        Vector3f part2 = m_vVecState[springs[i].particles[1]];
+        Vector3f translationVector = part2 - part1;
+        Vector3f otherVector = translationVector;
+        otherVector[0] = translationVector[0] - 1;
+        Vector3f translationVectorX = Vector3f::cross(translationVector, otherVector);
+        Vector3f translationVectorZ = Vector3f::cross(translationVectorX, translationVector);
+        
+        Vector3f translationVectorNormalized = translationVector;
+        Vector3f translationVectorNormalizedX = translationVectorX;
+        Vector3f translationVectorNormalizedZ = translationVectorZ;
+        
+        translationVectorNormalized.normalize();
+        translationVectorNormalizedX.normalize();
+        translationVectorNormalizedZ.normalize();
+        
+        Matrix4f rotateMat = Matrix4f(
+                                      Vector4f(translationVectorNormalizedX, 0),
+                                      //                                  Vector4f(1,0,0,0),
+                                      Vector4f(translationVectorNormalized, 0),
+                                      Vector4f(translationVectorNormalizedZ, 0),
+                                      //                                  Vector4f(0,0,1,0),
+                                      Vector4f(0,0,0,1)
+                                      );
+        
+        rotateMat = Matrix4f::translation(part1)*rotateMat;
+        
+        gl.updateModelMatrix(rotateMat);
+        float distance = translationVector.abs();
+        
+        drawCylinder(6, 0.02f, distance);
+    }
+
 }
