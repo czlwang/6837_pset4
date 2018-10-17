@@ -14,23 +14,26 @@ const float drag = 0.1;
 
 PendulumSystem::PendulumSystem()
 {
-
     // TODO 4.2 Add particles for simple pendulum
-    float k = 1.0;
+    float k = 3.0;
     float r = 0.1;
-    springs = {Spring(0, 2, 8*k, r),
-               Spring(2, 4, 4*k, 2*r),
-               Spring(4, 6, 2*k, 4*r),
-               Spring(6, 8, k, 8*r)
-              };
-    
+    Spring spr = Spring(1, 1, 1, 1);
+    std::vector<Spring> springTemp;
+    for(int i=0; i<NUM_PARTICLES; i++)
+    {
+        std::cout << "spring "  << 2*i << " " << 2*(i+1) << std::endl;
+        springs.push_back(Spring(2*i, 2*(i+1), k, r));
+    }
+    std::cout << "size of springs "  << springs.size() << std::endl;
     //state is vector of size 2n where where positions are stored at even indices and velocities at odd indices.
-    m_vVecState = { Vector3f(0,1,0), Vector3f(0,0,0),
-                    Vector3f(rand_uniform(-0.5f, 0.5f),0,0), Vector3f(0,0,0),
-                    Vector3f(rand_uniform(-0.5f, 0.5f),-1,0), Vector3f(0,0,0),
-                    Vector3f(0,-2,0), Vector3f(0,0,0),
-                    Vector3f(0,-3,0), Vector3f(0,0,0)
-                  };
+    m_vVecState = std::vector<Vector3f>(2*(NUM_PARTICLES+1));
+    m_vVecState[0] = Vector3f(1, 2, rand_uniform(-0.1f, 0.1f));
+    m_vVecState[2] = Vector3f(0,0,0);
+    for(int i=1; i<NUM_PARTICLES+1; i++)
+    {
+            m_vVecState[2*i] = Vector3f(1, 1-i, rand_uniform(-0.1f, 0.1f));
+            m_vVecState[2*i+1] = Vector3f(0,0,0);
+    }
     
     for(int i=0; i<(int)springs.size(); i++)
     {
@@ -58,11 +61,6 @@ PendulumSystem::PendulumSystem()
         }
     }
     
-    // TODO 4.3 Extend to multiple particles
-    
-    // To add a bit of randomness, use e.g.
-    // float f = rand_uniform(-0.5f, 0.5f);
-    // in your initial conditions.
 }
 
 
