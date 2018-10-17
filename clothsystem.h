@@ -2,7 +2,7 @@
 #define CLOTHSYSTEM_H
 
 #include <vector>
-
+#include "spring.hpp"
 #include "particlesystem.h"
 
 class ClothSystem : public ParticleSystem
@@ -19,6 +19,10 @@ public:
 
     // inherits
     // std::vector<Vector3f> m_vVecState;
+    std::vector<int> getSpringNeighbors(int i); //get the points which are connected to this point by a
+private:
+    std::vector<Spring> springs;
+    std::map<int, std::vector<int>> pointsToSprings;//map from point indices to spring indices
 };
 
 
