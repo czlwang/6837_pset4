@@ -17,15 +17,15 @@ PendulumSystem::PendulumSystem()
     // TODO 4.2 Add particles for simple pendulum
     float k = 3.0;
     float r = 0.1;
-    Spring spr = Spring(1, 1, 1, 1);
-    std::vector<Spring> springTemp;
+
+    //populate springs
     for(int i=0; i<NUM_PARTICLES; i++)
     {
-        std::cout << "spring "  << 2*i << " " << 2*(i+1) << std::endl;
         springs.push_back(Spring(2*i, 2*(i+1), k, r));
     }
-    std::cout << "size of springs "  << springs.size() << std::endl;
+    
     //state is vector of size 2n where where positions are stored at even indices and velocities at odd indices.
+    //populate state with initial conditions
     m_vVecState = std::vector<Vector3f>(2*(NUM_PARTICLES+1));
     m_vVecState[0] = Vector3f(1, 2, rand_uniform(-0.1f, 0.1f));
     m_vVecState[2] = Vector3f(0,0,0);
@@ -35,6 +35,7 @@ PendulumSystem::PendulumSystem()
             m_vVecState[2*i+1] = Vector3f(0,0,0);
     }
     
+    //populate pointsToSprings, which maps point indices to a list of spring indices
     for(int i=0; i<(int)springs.size(); i++)
     {
         Spring s = springs[i];
@@ -51,61 +52,34 @@ PendulumSystem::PendulumSystem()
         }
         pointsToSprings[s.particles[1]].push_back(i);
     }
-    
-    for(int i=0; i<(int)m_vVecState.size()/2; i++)
-    {
-        std::cout << "point " << 2*i << std::endl;
-        for(int j=0; j<pointsToSprings[2*i].size(); j++)
-        {
-            std::cout<< "spring " << pointsToSprings[2*i][j] << std::endl;
-        }
-    }
-    
 }
 
 
 std::vector<Vector3f> PendulumSystem::evalF(std::vector<Vector3f> state)
 {
-//    std::cout<<"pendulum evalF"<<std::endl;
     std::vector<Vector3f> f(state.size());
-    // TODO 4.1: implement evalF
-    //  - gravity
-    //  - viscous drag
-    //  - springs
-    
-    //state is vector of size 2n where where positions are stored at even indices and velocities at odd indices.
     
     f.push_back(state[0]);
-    f.push_back(Vector3f(0,0,0));//0 force
+    f.push_back(Vector3f(0,0,0));//0 force on the first node
     
     for(int i=1; i < (int)state.size()/2; i++)
     {
         Vector3f xi = state[2*i];
         Vector3f vel = state[2*i + 1];
         Vector3f force = g*Vector3f(0,-1,0) - drag*vel;
-//        std::cout << "particle " << 2*i << std::endl;
         for(int spring_index : pointsToSprings[2*i])
         {
-//            std::cout << "made it in the spring loop " << 2*i << std::endl;
             Spring spring = springs[spring_index];
             Vector3f xj = state[spring.getSpringNeighbor(2*i)];
-//            std::cout << "neighbor particle " << spring.getSpringNeighbor(2*i) << std::endl;
-
-//            std::cout << "made it in the spring loop " << state.size() << std::endl;
             float k = spring.k;
             float r = spring.r;
             Vector3f d = xi - xj;
-//            std::cout << "d " << d[0] << " " << d[1] << " " << d[2] << std::endl;
             Vector3f springForce = -k*(d.abs()-r)*d/d.abs();
-//            std::cout << "springForce " << springForce[0] << " " << springForce[1] << " " << springForce[2] << std::endl;
             force += springForce;
         }
         f[2*i] = vel;
         f[2*i+1] = force;
     }
-//    std::cout << "size " << state.size() << std::endl;
-//    std::cout << "f2 " << f[2][0] << " " << f[2][1] << " " << f[2][2] << std::endl;
-    
     return f;
 }
 
@@ -114,10 +88,6 @@ void PendulumSystem::draw(GLProgram& gl)
 {
     const Vector3f PENDULUM_COLOR(0.73f, 0.0f, 0.83f);
     gl.updateMaterial(PENDULUM_COLOR);
-    
-    // TODO 4.2, 4.3
-
-    // example code. Replace with your own drawing  code
     for(int i=0; i < (int)m_vVecState.size()/2; i++)
     {
         Vector3f pos = m_vVecState[2*i];
@@ -128,8 +98,6 @@ void PendulumSystem::draw(GLProgram& gl)
     const Vector3f CLOTH_COLOR(0.2f, 0.2f, 0.9f);
     gl.updateMaterial(CLOTH_COLOR);
     
-    // EXAMPLE for how to render cloth particles.
-    //  - you should replace this code.
     float w = 0.2f;
     gl.disableLighting();
     for(int i=0; i<(int)springs.size(); i++)

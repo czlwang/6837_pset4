@@ -19,6 +19,8 @@ ClothSystem::ClothSystem()
 {
     // TODO 5. Initialize m_vVecState with cloth particles. 
     // You can again use rand_uniform(lo, hi) to make things a bit more interesting
+
+    //populate springs
     float spring_constant = 20.0;
     std::vector<int> offsets = {-1,0 , 1,0 , 0,-1 , 0,1 , -1,1 , -1,-1 , 1,-1 , 1,1, 0,2 , 0,-2 , 2,0 , -2,0};
     for(int i=0; i<H; i++)
@@ -47,8 +49,6 @@ ClothSystem::ClothSystem()
         }
     }
     
-    std::cout << " springs size " << springs.size() << std::endl;
-    
     m_vVecState = std::vector<Vector3f>(2*W*H);
     for(int i=0; i<H; i++)
     {
@@ -62,7 +62,6 @@ ClothSystem::ClothSystem()
     }
     
     //state is vector of size 2n where where positions are stored at even indices and velocities at odd indices.
-    
     for(int i=0; i<(int)springs.size(); i++)
     {
         Spring s = springs[i];
@@ -84,49 +83,31 @@ ClothSystem::ClothSystem()
 std::vector<Vector3f> ClothSystem::evalF(std::vector<Vector3f> state)
 {
     std::vector<Vector3f> f(state.size());
-    // TODO 4.1: implement evalF
-    //  - gravity
-    //  - viscous drag
-    //  - springs
-    
-    //state is vector of size 2n where where positions are stored at even indices and velocities at odd indices.
-    
-    f.push_back(state[0]);
-    f.push_back(Vector3f(0,0,0));//0 force
     
     for(int i=0; i < (int)state.size()/2; i++)
     {
         Vector3f xi = state[2*i];
         Vector3f vel = state[2*i + 1];
         Vector3f force = g*Vector3f(0,-1,0) - drag*vel;
-        //        std::cout << "particle " << 2*i << std::endl;
         for(int spring_index : pointsToSprings[2*i])
         {
-            //            std::cout << "made it in the spring loop " << 2*i << std::endl;
             Spring spring = springs[spring_index];
             Vector3f xj = state[spring.getSpringNeighbor(2*i)];
-            //            std::cout << "neighbor particle " << spring.getSpringNeighbor(2*i) << std::endl;
-            
-            //            std::cout << "made it in the spring loop " << state.size() << std::endl;
             float k = spring.k;
             float r = spring.r;
             Vector3f d = xi - xj;
-            //            std::cout << "d " << d[0] << " " << d[1] << " " << d[2] << std::endl;
             Vector3f springForce = -k*(d.abs()-r)*d/d.abs();
-            //            std::cout << "springForce " << springForce[0] << " " << springForce[1] << " " << springForce[2] << std::endl;
             force += springForce;
         }
         f[2*i] = vel;
         f[2*i+1] = force;
         
-        if(i==0 || i==W*(H-1))
+        if(i==0 || i==W*(H-1))//0 force on the two top corners of the cloth
         {
             f[2*i] = Vector3f(0,0,0);
             f[2*i+1] = Vector3f(0,0,0);
         }
     }
-    //    std::cout << "size " << state.size() << std::endl;
-    //    std::cout << "f2 " << f[2][0] << " " << f[2][1] << " " << f[2][2] << std::endl;
     
     return f;
 }
@@ -134,16 +115,9 @@ std::vector<Vector3f> ClothSystem::evalF(std::vector<Vector3f> state)
 
 void ClothSystem::draw(GLProgram& gl)
 {
-    //TODO 5: render the system 
-    //         - ie draw the particles as little spheres
-    //         - or draw the springs as little lines or cylinders
-    //         - or draw wireframe mesh
-
     const Vector3f CLOTH_COLOR(0.9f, 0.9f, 0.9f);
     gl.updateMaterial(CLOTH_COLOR);
-    // TODO 4.2, 4.3
     
-    // example code. Replace with your own drawing  code
     for(int i=0; i < (int)m_vVecState.size()/2; i++)
     {
         Vector3f pos = m_vVecState[2*i];
@@ -151,8 +125,6 @@ void ClothSystem::draw(GLProgram& gl)
         drawSphere(0.075f, 10, 10);
     }
     
-    // EXAMPLE for how to render cloth particles.
-    //  - you should replace this code.
     float w = 0.2f;
     gl.disableLighting();
     for(int i=0; i<(int)springs.size(); i++)
